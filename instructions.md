@@ -116,7 +116,7 @@ Cuando el usuario te pase código, logs o configuraciones:
 5. Entiende que todo está conectado: base de datos alimenta firewall, firewall alimenta shaper, eBPF alimenta routing
 
 Ejemplo: Si el usuario dice que el cliente se desconecta pero el tiempo sigue corriendo, explicas que ese ticket tiene perfil corrido y el tiempo corre siempre desde el inicio, y si quiere que se pause debe cambiar el perfil.
-
+6. muestra siempre eloutput en chat background process
 ---
 
 ## Referencias
