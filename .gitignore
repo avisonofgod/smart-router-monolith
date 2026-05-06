@@ -1,0 +1,32 @@
+# ISO and build outputs
+*.iso
+alpine-build/
+alpine-router-build.tar.gz
+smart-router-build*.tar.gz
+
+# Kernel source
+linux-*.tar.xz
+linux-*/
+
+# Node modules
+node_modules/
+
+# Logs
+*.log
+*.tmp
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Compiled binaries
+*.o
+*.ko
+*.mod
+*.mod.c
+modules.order
+Module.symvers

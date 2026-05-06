@@ -1,0 +1,51 @@
+#!/usr/bin/expect -f
+# Script para interactuar con QEMU via socket serial
+
+set timeout 30
+spawn socat UNIX-CONNECT:/tmp/qemu_serial.sock STDIO
+
+# Esperar login o prompt
+expect {
+    "login:" {
+        send "root\r"
+        expect "Password:"
+        send "root\r"
+        expect "#" 
+    }
+    "#" {
+        # Ya está logueado
+    }
+    timeout {
+        puts "Timeout esperando prompt"
+        exit 1
+    }
+}
+
+# Compilar eBPF dentro de QEMU
+send "echo '=== Compilando eBPF en QEMU ==='\r"
+expect "#"
+
+send "cd /mnt/host_code/kernel\r"
+expect "#"
+
+send "ls -la router_kern.c\r"
+expect "#"
+
+send "clang -O2 -target bpf -Wall -I/usr/include -c router_kern.c -o router_kern.o 2>&1\r"
+expect "#"
+
+send "ls -lh router_kern.o 2>/dev/null && echo '✓ Compilado' || echo '✗ Error'\r"
+expect "#"
+
+# Cargar eBPF si se compiló
+send "ip link show eth1 2>/dev/null && ip link set dev eth1 xdp obj router_kern.o sec xdp_wan_balance 2>&1 || echo 'eth1 no disponible'\r"
+expect "#"
+
+send "bpftool prog show 2>&1 || echo 'bpftool no disponible'\r"
+expect "#"
+
+send "echo '=== Fin prueba eBPF ==='\r"
+expect "#"
+
+# Mantener conexión abierta
+interact

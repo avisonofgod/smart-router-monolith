@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartRouter - Portal Cautivo</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 Portal Cautivo</h1>
+            <p>Bienvenido a SmartRouter Hotspot</p>
+        </div>
+
+        <div class="login-box">
+            <h2>Ingresa tu Ticket</h2>
+            <form id="loginForm">
+                <div class="input-group">
+                    <label for="ticket">Ticket ID:</label>
+                    <input type="text" id="ticket" name="ticket" required placeholder="Ej: abc123def">
+                </div>
+                <div class="input-group">
+                    <label for="mac">MAC Address (opcional):</label>
+                    <input type="text" id="mac" name="mac" placeholder="Ej: aa:bb:cc:dd:ee:ff">
+                </div>
+                <button type="submit" class="btn-primary">Conectar</button>
+            </form>
+            <div id="message"></div>
+        </div>
+
+        <div class="info-box">
+            <h3>ℹ️ Información</h3>
+            <ul>
+                <li>El tiempo corre SOLO cuando estás conectado (Perfil Pausado)</li>
+                <li>Guarda tu ticket, lo necesitarás para reconectar</li>
+                <li>Velocidad según plan contratado</li>
+            </ul>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

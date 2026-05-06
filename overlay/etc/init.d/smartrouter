@@ -1,0 +1,67 @@
+#!/sbin/openrc-run
+# OpenRC init script for SmartRouter Monolith
+
+description="SmartRouter Monolith - Intelligent ISP Router"
+command="/opt/smart-router/smart-router"
+command_args=""
+command_background="yes"
+pidfile="/var/run/smartrouter.pid"
+
+depend() {
+    need net redis
+    use dns unbound
+    after firewall
+}
+
+start_pre() {
+    # Verificar que existe el binario
+    if [ ! -x "/opt/smart-router/smart-router" ]; then
+        eerror "SmartRouter binary not found at /opt/smart-router/smartrouter"
+        return 1
+    fi
+    
+    # Verificar Redis
+    if ! redis-cli ping > /dev/null 2>&1; then
+        ewarn "Redis is not running. Starting redis..."
+        rc-service redis start
+    fi
+    
+    # Cargar módulos necesarios
+    modprobe cls_bpf 2>/dev/null || true
+    modprobe sch_htb 2>/dev/null || true
+    modprobe nf_tables 2>/dev/null || true
+}
+
+start() {
+    ebegin "Starting SmartRouter Monolith"
+    
+    # Configurar variables de entorno
+    export PATH="$PATH:/root/.bun/bin"
+    
+    # Crear directorio de logs si no existe
+    mkdir -p /var/log/smartrouter
+    
+    # Iniciar proceso
+    start-stop-daemon --start \
+        --background \
+        --make-pidfile \
+        --pidfile "$pidfile" \
+        --stdout /var/log/smartrouter/stdout.log \
+        --stderr /var/log/smartrouter/stderr.log \
+        --exec "$command" \
+        -- $command_args
+    
+    eend $?
+}
+
+stop() {
+    ebegin "Stopping SmartRouter Monolith"
+    start-stop-daemon --stop --pidfile "$pidfile"
+    eend $?
+}
+
+reload() {
+    ebegin "Reloading SmartRouter Monolith"
+    start-stop-daemon --signal HUP --pidfile "$pidfile"
+    eend $?
+}

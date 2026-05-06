@@ -1,0 +1,11 @@
+{
+  "username": "cliente_001",
+  "password": "contraseña_segura_123",
+  "plan": "20Mbps",
+  "group_id": "speed2",
+  "nombre": "Juan Pérez",
+  "telefono": "555-1234",
+  "email": "juan@example.com",
+  "pago_status": "pagado",
+  "estado_red": "active"
+}

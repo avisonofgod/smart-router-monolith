@@ -1,0 +1,100 @@
+# Makefile para Alpine Router Build
+# Uso: make -f Makefile.alpine [target]
+
+BUILD_DIR := alpine-build
+ISO_INPUT := alpine-standard-3.23.4-x86_64.iso
+ISO_OUTPUT := alpine-router-n100-$(shell date +%Y%m%d).iso
+KERNEL_VER := 6.12.21
+
+.PHONY: all help prepare kernel rootfs iso qemu clean
+
+## Ayuda
+help:
+	@echo "Alpine Router Build System"
+	@echo "=========================="
+	@echo ""
+	@echo "Targets disponibles:"
+	@echo "  all       - Ejecutar build completo (todas las fases)"
+	@echo "  prepare   - Fase 1: Preparar entorno"
+	@echo "  kernel    - Fase 2: Compilar kernel"
+	@echo "  rootfs    - Fase 3: Crear rootfs"
+	@echo "  iso       - Fase 4: Generar ISO"
+	@echo "  qemu      - Fase 5: Probar en QEMU"
+	@echo "  clean     - Limpiar archivos de build"
+	@echo ""
+	@echo "Ejemplo: make -f Makefile.alpine all"
+
+## Fase 1: Preparar
+prepare:
+	@echo "=== FASE 1: Preparando entorno ==="
+	chmod +x scripts/*.sh alpine-router-build.sh
+	./scripts/alpine-prepare.sh
+
+## Fase 2: Kernel
+kernel: prepare
+	@echo "=== FASE 2: Compilando kernel ==="
+	@mkdir -p $(BUILD_DIR)/kernel
+	@cd $(BUILD_DIR)/kernel && \
+	if [ ! -f linux-$(KERNEL_VER).tar.xz ]; then \
+		echo "Descargando kernel $(KERNEL_VER)..."; \
+		wget https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-$(KERNEL_VER).tar.xz; \
+	fi && \
+	if [ ! -d linux-$(KERNEL_VER) ]; then \
+		tar xf linux-$(KERNEL_VER).tar.xz; \
+	fi && \
+	cd linux-$(KERNEL_VER) && \
+	cp $(CURDIR)/kernel/n100-router-alpine.config .config && \
+	make olddefconfig && \
+	echo "Compilando kernel (make -j$$(nproc))..." && \
+	make -j$$(nproc) bzImage && \
+	make -j$$(nproc) modules && \
+	cp arch/x86/boot/bzImage ../bzImage-n100-router && \
+	echo "✅ Kernel compilado: $(BUILD_DIR)/kernel/bzImage-n100-router"
+
+## Fase 3: Rootfs
+rootfs: prepare
+	@echo "=== FASE 3: Creando rootfs ==="
+	./scripts/alpine-rootfs.sh
+
+## Fase 4: ISO
+iso: kernel rootfs
+	@echo "=== FASE 4: Generando ISO ==="
+	./scripts/alpine-iso.sh
+
+## Fase 5: QEMU
+qemu: iso
+	@echo "=== FASE 5: Probando en QEMU ==="
+	./scripts/alpine-qemu-test.sh
+
+## ALL: Build completo
+all: prepare kernel rootfs iso
+	@echo ""
+	@echo "=========================================="
+	@echo "✅ BUILD COMPLETO FINALIZADO"
+	@echo "=========================================="
+	@echo "ISO generado: $(ISO_OUTPUT)"
+	@echo ""
+	@echo "Siguiente paso: Grabar a USB"
+	@echo "  lsblk  # identificar USB"
+	@echo "  sudo dd if=$(ISO_OUTPUT) of=/dev/sdX bs=4M status=progress && sync"
+	@echo ""
+
+## Limpiar
+clean:
+	@echo "Limpiando archivos de build..."
+	rm -rf $(BUILD_DIR)
+	rm -f alpine-router-n100-*.iso
+	@echo "✅ Limpieza completada"
+
+## Test rápido en QEMU (sin rebuild)
+test-qemu:
+	@ISO=$$(ls -t alpine-router-n100-*.iso 2>/dev/null | head -1); \
+	if [ -z "$$ISO" ]; then \
+		echo "Error: No hay ISO para probar. Ejecuta 'make -f Makefile.alpine iso' primero."; \
+		exit 1; \
+	fi; \
+	echo "Iniciando QEMU con $$ISO..."; \
+	sudo qemu-system-x86_64 -m 2048 -smp 4 -cdrom $$ISO -boot d \
+		-netdev user,id=net0,hostfwd=tcp::3000-:3000 \
+		-device e1000,netdev=net0 \
+		-nographic

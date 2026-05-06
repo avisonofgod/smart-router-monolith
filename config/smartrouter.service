@@ -1,0 +1,25 @@
+[Unit]
+Description=SmartRouter Monolith - ISP Management System
+After=network.target redis.service unbound.service accel-ppp.service
+Wants=redis.service unbound.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/home/river/smart-router-monolith
+ExecStart=/home/river/smart-router-monolith/smart-router
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+# Environment
+Environment="REDIS_URL=redis://localhost:6379"
+Environment="LOG_LEVEL=info"
+
+# Security (optional, comment if issues)
+# NoNewPrivileges=true
+# PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

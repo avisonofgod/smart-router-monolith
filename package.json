@@ -1,0 +1,21 @@
+{
+  "name": "smart-router-monolith",
+  "version": "1.0.0",
+  "description": "SmartRouter Monolith - Intelligent router with Bun, Redis, eBPF, and Unbound",
+  "type": "module",
+  "scripts": {
+    "start": "bun run src/index.ts",
+    "dev": "bun run --watch src/index.ts",
+    "build": "bun build ./src/index.ts --compile --outfile smart-router",
+    "deploy": "bash scripts/deploy.sh",
+    "backup": "bash scripts/backup.sh",
+    "monitor": "bash scripts/monitor.sh"
+  },
+  "dependencies": {
+    "redis": "^4.6.0"
+  },
+  "devDependencies": {},
+  "engines": {
+    "bun": ">=1.0.0"
+  }
+}
