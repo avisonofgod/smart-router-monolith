@@ -26,7 +26,7 @@ fi
 # ========== 2. Initramfs ==========
 echo "[2/7] Creando initramfs..."
 cd "$BUILD_DIR/rootfs"
-find . | cpio -H newc -o 2>/dev/null | xz -9 --format=lzma > "$ISO_DIR/boot/initramfs.img"
+find . | cpio -H newc -o 2>/dev/null | gzip -9 > "$ISO_DIR/boot/initramfs.img"
 
 # ========== 3. Squashfs ==========
 echo "[3/7] Creando squashfs..."
@@ -49,12 +49,12 @@ DEFAULT boot
 LABEL boot
     MENU LABEL Alpine Router N100 - Boot
     KERNEL /boot/vmlinuz
-    APPEND initrd=/boot/initramfs.img modules=loop,squashfs quiet nomodeset
+    APPEND initrd=/boot/initramfs.img modules=loop,squashfs nomodeset acpi=off console=tty0
 
 LABEL install
     MENU LABEL Alpine Router N100 - Install to Disk
     KERNEL /boot/vmlinuz
-    APPEND initrd=/boot/initramfs.img modules=loop,squashfs quiet nomodeset alpine_dev=UUID=BOOT live_ram
+    APPEND initrd=/boot/initramfs.img modules=loop,squashfs nomodeset acpi=off console=tty0 alpine_dev=UUID=BOOT live_ram
 SYSLINUX
 
 # ========== 5. Crear efi.img con systemd-boot ==========
@@ -105,7 +105,7 @@ cat > /tmp/alpine-router.conf << 'ENTRY'
 title   Alpine Router N100 - Boot
 linux   /vmlinuz
 initrd  /initramfs.img
-options modules=loop,squashfs quiet nomodeset
+options modules=loop,squashfs nomodeset acpi=off console=tty0 earlyprintk=tty0
 ENTRY
 mcopy -i "$ISO_DIR/efi.img" /tmp/alpine-router.conf ::/loader/entries/alpine-router.conf
 
@@ -114,7 +114,7 @@ cat > /tmp/alpine-install.conf << 'ENTRY2'
 title   Alpine Router N100 - Install to Disk
 linux   /vmlinuz
 initrd  /initramfs.img
-options modules=loop,squashfs quiet nomodeset alpine_dev=UUID=BOOT live_ram
+options modules=loop,squashfs nomodeset acpi=off console=tty0 earlyprintk=tty0 alpine_dev=UUID=BOOT live_ram
 ENTRY2
 mcopy -i "$ISO_DIR/efi.img" /tmp/alpine-install.conf ::/loader/entries/alpine-install.conf
 
