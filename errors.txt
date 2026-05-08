@@ -1,5 +1,0 @@
-Configuration is invalid at /home/river/.opencode/opencode.jsonc
-↳ Expected boolean, got "allow" tools.shell
-↳ Expected boolean, got "allow" tools.network
-↳ Expected boolean, got "allow" tools.filesystem
-↳ Expected boolean, got "allow" tools.subprocess
